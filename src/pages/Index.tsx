@@ -1,11 +1,12 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import GameCard from "@/components/GameCard";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 
-// Temporary mock data until we integrate with a backend
 const mockGames = [
   {
     id: "1",
@@ -30,9 +31,17 @@ const mockGames = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [games, setGames] = useState(mockGames);
-  const [isAdmin] = useState(true); // Temporary, replace with actual auth
+  const [isAdmin] = useState(true); // We'll implement proper admin checks later
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
 
   const handleCheckout = (gameId: string) => {
     setGames(games.map(game => 
@@ -52,6 +61,15 @@ const Index = () => {
     });
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
+  if (loading) {
+    return <div className="container mx-auto px-4 py-8">Loading...</div>;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 page-transition">
       <div className="flex justify-between items-center mb-8">
@@ -61,12 +79,18 @@ const Index = () => {
             Browse and borrow from our collection of board games
           </p>
         </div>
-        {isAdmin && (
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Game
+        <div className="flex gap-4">
+          {isAdmin && (
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Game
+            </Button>
+          )}
+          <Button variant="outline" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
           </Button>
-        )}
+        </div>
       </div>
 
       <div className="game-grid">
