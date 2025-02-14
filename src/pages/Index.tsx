@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import GameCard from "@/components/GameCard";
@@ -34,16 +35,27 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [games, setGames] = useState(mockGames);
-  const [isAdmin] = useState(true); // We'll implement proper admin checks later
+  const [isAdmin] = useState(false); // Only logged in users can be admins
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
+    // Remove the redirect to auth page since we now support guest mode
+    if (!loading && user) {
+      // If user is logged in, check if they're an admin (implement this later)
     }
-  }, [user, loading, navigate]);
+  }, [user, loading]);
 
   const handleCheckout = (gameId: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to borrow games.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
     setGames(games.map(game => 
       game.id === gameId ? { ...game, isCheckedOut: true } : game
     ));
@@ -86,10 +98,16 @@ const Index = () => {
               Add Game
             </Button>
           )}
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          {user ? (
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => navigate("/auth")}>
+              Sign In
+            </Button>
+          )}
         </div>
       </div>
 
