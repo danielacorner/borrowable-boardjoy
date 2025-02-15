@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import GameCard from "@/components/GameCard";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { GameStatus } from "@/types";
 
 const Index = () => {
   const [search, setSearch] = useState("");
@@ -14,13 +14,13 @@ const Index = () => {
   const queryClient = useQueryClient();
 
   const { data: games, isLoading } = useQuery({
-    queryKey: ['games'],
+    queryKey: ["games"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('games')
-        .select('*')
-        .order('title');
-      
+        .from("games")
+        .select("*")
+        .order("title");
+
       if (error) throw error;
       return data;
     },
@@ -32,7 +32,7 @@ const Index = () => {
       dates,
       borrowerName,
       borrowerEmail,
-      message
+      message,
     }: {
       gameId: string;
       dates: { from: Date; to: Date };
@@ -41,7 +41,7 @@ const Index = () => {
       message: string;
     }) => {
       const { data, error } = await supabase
-        .from('reservations')
+        .from("reservations")
         .insert([
           {
             game_id: gameId,
@@ -59,10 +59,11 @@ const Index = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['games'] });
+      queryClient.invalidateQueries({ queryKey: ["games"] });
       toast({
         title: "Success",
-        description: "Your reservation request has been submitted. You'll receive an email confirmation shortly.",
+        description:
+          "Your reservation request has been submitted. You'll receive an email confirmation shortly.",
       });
     },
     onError: (error) => {
@@ -71,7 +72,7 @@ const Index = () => {
         description: "Failed to submit reservation. Please try again.",
         variant: "destructive",
       });
-      console.error('Reservation error:', error);
+      console.error("Reservation error:", error);
     },
   });
 
@@ -91,9 +92,10 @@ const Index = () => {
     });
   };
 
-  const filteredGames = games?.filter(game =>
-    game.title.toLowerCase().includes(search.toLowerCase()) ||
-    game.description?.toLowerCase().includes(search.toLowerCase())
+  const filteredGames = games?.filter(
+    (game) =>
+      game.title.toLowerCase().includes(search.toLowerCase()) ||
+      game.description?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -121,7 +123,10 @@ const Index = () => {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-[400px] rounded-lg bg-muted animate-pulse" />
+              <div
+                key={i}
+                className="h-[400px] rounded-lg bg-muted animate-pulse"
+              />
             ))}
           </div>
         ) : (
@@ -139,12 +144,18 @@ const Index = () => {
                   playTime: game.play_time,
                   recommendedAge: game.recommended_age,
                   complexityRating: game.complexity_rating,
-                  status: game.status,
+                  status: game.status as GameStatus,
                   conditionNotes: game.condition_notes,
                 }}
                 isAdmin={false}
-                onCheckout={(dates, borrowerName, borrowerEmail, message) => 
-                  handleCheckout(game.id, dates, borrowerName, borrowerEmail, message)
+                onCheckout={(dates, borrowerName, borrowerEmail, message) =>
+                  handleCheckout(
+                    game.id,
+                    dates,
+                    borrowerName,
+                    borrowerEmail,
+                    message
+                  )
                 }
               />
             ))}

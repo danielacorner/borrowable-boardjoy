@@ -1,6 +1,12 @@
-
 import React from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash, Calendar, User, Clock, Brain } from "lucide-react";
@@ -16,30 +22,28 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-interface Game {
-  id: string;
-  title: string;
-  description: string | null;
-  imageUrl: string | null;
-  minPlayers: number | null;
-  maxPlayers: number | null;
-  playTime: string | null;
-  recommendedAge: string | null;
-  complexityRating: number | null;
-  status: 'available' | 'reserved' | 'borrowed' | 'maintenance' | 'retired';
-  conditionNotes: string | null;
-}
+import { Game, GameStatus } from "@/types";
 
 interface GameCardProps {
   game: Game;
   isAdmin: boolean;
-  onCheckout?: (dates: { from: Date; to: Date }, borrowerName: string, borrowerEmail: string, message: string) => void;
+  onCheckout?: (
+    dates: { from: Date; to: Date },
+    borrowerName: string,
+    borrowerEmail: string,
+    message: string
+  ) => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
 
-const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps) => {
+const GameCard = ({
+  game,
+  isAdmin,
+  onCheckout,
+  onEdit,
+  onDelete,
+}: GameCardProps) => {
   const [showBorrowDialog, setShowBorrowDialog] = React.useState(false);
   const [borrowDates, setBorrowDates] = React.useState<{
     from: Date | undefined;
@@ -57,7 +61,12 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
   const [message, setMessage] = React.useState("");
 
   const handleBorrowSubmit = () => {
-    if (!borrowDates.from || !borrowDates.to || !borrowerName.trim() || !borrowerEmail.trim()) {
+    if (
+      !borrowDates.from ||
+      !borrowDates.to ||
+      !borrowerName.trim() ||
+      !borrowerEmail.trim()
+    ) {
       return;
     }
     localStorage.setItem("guestName", borrowerName);
@@ -68,19 +77,19 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
     }
   };
 
-  const getStatusBadgeColor = (status: Game['status']) => {
+  const getStatusBadgeColor = (status: Game["status"]) => {
     switch (status) {
-      case 'available':
-        return 'bg-green-500/90';
-      case 'borrowed':
-      case 'reserved':
-        return 'bg-yellow-500/90';
-      case 'maintenance':
-        return 'bg-orange-500/90';
-      case 'retired':
-        return 'bg-red-500/90';
+      case "available":
+        return "bg-green-500/90";
+      case "borrowed":
+      case "reserved":
+        return "bg-yellow-500/90";
+      case "maintenance":
+        return "bg-orange-500/90";
+      case "retired":
+        return "bg-red-500/90";
       default:
-        return 'bg-gray-500/90';
+        return "bg-gray-500/90";
     }
   };
 
@@ -93,15 +102,19 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
             alt={game.title}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
           />
-          <Badge 
-            variant="secondary" 
-            className={`absolute top-2 right-2 ${getStatusBadgeColor(game.status)} text-white`}
+          <Badge
+            variant="secondary"
+            className={`absolute top-2 right-2 ${getStatusBadgeColor(
+              game.status
+            )} text-white`}
           >
             {game.status.charAt(0).toUpperCase() + game.status.slice(1)}
           </Badge>
         </div>
         <CardHeader>
-          <CardTitle className="text-xl font-semibold line-clamp-1">{game.title}</CardTitle>
+          <CardTitle className="text-xl font-semibold line-clamp-1">
+            {game.title}
+          </CardTitle>
           <CardDescription className="flex flex-wrap gap-2">
             <Badge variant="outline">
               <User className="h-3 w-3 mr-1" />
@@ -114,9 +127,7 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
               </Badge>
             )}
             {game.recommendedAge && (
-              <Badge variant="outline">
-                {game.recommendedAge}+
-              </Badge>
+              <Badge variant="outline">{game.recommendedAge}+</Badge>
             )}
             {game.complexityRating && (
               <Badge variant="outline">
@@ -127,7 +138,9 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground line-clamp-2">{game.description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {game.description}
+          </p>
           {game.conditionNotes && (
             <p className="text-sm text-muted-foreground mt-2 italic">
               Condition: {game.conditionNotes}
@@ -147,13 +160,13 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
               </Button>
             </div>
           ) : (
-            <Button 
-              size="sm" 
-              disabled={game.status !== 'available'}
+            <Button
+              size="sm"
+              disabled={game.status !== "available"}
               onClick={() => setShowBorrowDialog(true)}
             >
               <Calendar className="h-4 w-4 mr-1" />
-              {game.status === 'available' ? "Borrow Game" : "Unavailable"}
+              {game.status === "available" ? "Borrow Game" : "Unavailable"}
             </Button>
           )}
         </CardFooter>
@@ -164,7 +177,8 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
           <DialogHeader>
             <DialogTitle>Borrow {game.title}</DialogTitle>
             <DialogDescription>
-              Enter your details and select the dates you'd like to borrow this game.
+              Enter your details and select the dates you'd like to borrow this
+              game.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -196,9 +210,9 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
                   to: borrowDates.to,
                 }}
                 onSelect={(range) => {
-                  setBorrowDates({ 
-                    from: range?.from, 
-                    to: range?.to 
+                  setBorrowDates({
+                    from: range?.from,
+                    to: range?.to,
                   });
                 }}
                 className="rounded-md border"
@@ -216,12 +230,20 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
             </div>
           </div>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setShowBorrowDialog(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowBorrowDialog(false)}
+            >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleBorrowSubmit}
-              disabled={!borrowDates.from || !borrowDates.to || !borrowerName.trim() || !borrowerEmail.trim()}
+              disabled={
+                !borrowDates.from ||
+                !borrowDates.to ||
+                !borrowerName.trim() ||
+                !borrowerEmail.trim()
+              }
             >
               Confirm Borrowing
             </Button>
