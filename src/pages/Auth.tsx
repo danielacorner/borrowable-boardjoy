@@ -1,6 +1,6 @@
 
 import React, { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,35 +17,19 @@ interface AuthFormData {
 
 const Auth = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSignUp, setIsSignUp] = React.useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<AuthFormData>();
 
-  const returnTo = (location.state as any)?.returnTo || "/";
-  const gameId = (location.state as any)?.gameId;
-  const action = (location.state as any)?.action;
-
   useEffect(() => {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        handleSuccessfulAuth();
+        navigate("/");
       }
     });
   }, [navigate]);
-
-  const handleSuccessfulAuth = () => {
-    if (action === "checkout" && gameId) {
-      // Handle the checkout action that was pending
-      toast({
-        title: "Success",
-        description: "Game checkout completed!",
-      });
-    }
-    navigate(returnTo);
-  };
 
   const onSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
@@ -71,7 +55,7 @@ const Auth = () => {
           password: data.password,
         });
         if (error) throw error;
-        handleSuccessfulAuth();
+        navigate("/");
       }
     } catch (error: any) {
       toast({
@@ -85,13 +69,11 @@ const Auth = () => {
   };
 
   const handleGuestAccess = () => {
-    if (action === "checkout") {
-      toast({
-        title: "Success",
-        description: "Game checkout completed as guest!",
-      });
-    }
-    navigate(returnTo);
+    toast({
+      title: "Guest Access",
+      description: "Welcome! You're browsing as a guest.",
+    });
+    navigate("/");
   };
 
   return (
@@ -100,9 +82,7 @@ const Auth = () => {
         <CardHeader>
           <CardTitle>{isSignUp ? "Create Account" : "Welcome Back"}</CardTitle>
           <CardDescription>
-            {action === "checkout" 
-              ? "Sign in or continue as guest to complete borrowing the game"
-              : isSignUp
+            {isSignUp
               ? "Sign up to start borrowing games"
               : "Sign in to your account"}
           </CardDescription>
