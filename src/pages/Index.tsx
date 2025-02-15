@@ -167,12 +167,14 @@ const Index = () => {
 
   const handleCheckout = (gameId: string) => {
     if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to borrow games.",
-        variant: "destructive",
+      // Instead of showing a toast, redirect to auth with return URL
+      navigate("/auth", { 
+        state: { 
+          returnTo: "/",
+          gameId: gameId,
+          action: "checkout"
+        } 
       });
-      navigate("/auth");
       return;
     }
 
