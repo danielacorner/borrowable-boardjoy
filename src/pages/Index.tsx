@@ -1,12 +1,8 @@
-
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import GameCard from "@/components/GameCard";
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
 
 const mockGames = [
   {
@@ -152,34 +148,13 @@ const mockGames = [
 ];
 
 const Index = () => {
-  const navigate = useNavigate();
-  const { user, loading } = useAuth();
   const [games, setGames] = useState(mockGames);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin] = useState(false); // Only admins access through /admin now
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (!loading && user) {
-      // Check if the user is an admin (danielcorner7@gmail.com)
-      setIsAdmin(user.email === "danielcorner7@gmail.com");
-    }
-  }, [user, loading]);
-
-  const handleCheckout = (gameId: string) => {
-    if (!user) {
-      // Instead of showing a toast, redirect to auth with return URL
-      navigate("/auth", { 
-        state: { 
-          returnTo: "/",
-          gameId: gameId,
-          action: "checkout"
-        } 
-      });
-      return;
-    }
-
+  const handleCheckout = (gameId: string, dates: { from: Date; to: Date }, borrowerName: string) => {
     setGames(games.map(game => 
-      game.id === gameId ? { ...game, isCheckedOut: true } : game
+      game.id === gameId ? { ...game, isCheckedOut: true, borrowerName } : game
     ));
     toast({
       title: "Success",
@@ -195,15 +170,6 @@ const Index = () => {
     });
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
-
-  if (loading) {
-    return <div className="container mx-auto px-4 py-8">Loading...</div>;
-  }
-
   return (
     <div className="container mx-auto px-4 py-8 page-transition">
       <div className="flex justify-between items-center mb-8">
@@ -213,24 +179,12 @@ const Index = () => {
             Browse and borrow from our collection of board games
           </p>
         </div>
-        <div className="flex gap-4">
-          {isAdmin && (
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Game
-            </Button>
-          )}
-          {user ? (
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          ) : (
-            <Button variant="outline" onClick={() => navigate("/auth")}>
-              Sign In
-            </Button>
-          )}
-        </div>
+        {isAdmin && (
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Game
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -239,7 +193,7 @@ const Index = () => {
             key={game.id}
             game={game}
             isAdmin={isAdmin}
-            onCheckout={() => handleCheckout(game.id)}
+            onCheckout={(dates, borrowerName) => handleCheckout(game.id, dates, borrowerName)}
             onDelete={() => handleDelete(game.id)}
             onEdit={() => console.log("Edit game:", game.id)}
           />

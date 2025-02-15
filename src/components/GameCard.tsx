@@ -13,7 +13,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
-import { addDays } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Game {
   id: string;
@@ -24,12 +25,13 @@ interface Game {
   maxPlayers: number;
   playTime: string;
   isCheckedOut: boolean;
+  borrowerName?: string;
 }
 
 interface GameCardProps {
   game: Game;
   isAdmin: boolean;
-  onCheckout?: () => void;
+  onCheckout?: (dates: { from: Date; to: Date }, borrowerName: string) => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -37,17 +39,24 @@ interface GameCardProps {
 const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps) => {
   const [showBorrowDialog, setShowBorrowDialog] = React.useState(false);
   const [borrowDates, setBorrowDates] = React.useState<{
-    from: Date;
-    to: Date;
+    from: Date | undefined;
+    to: Date | undefined;
   }>({
-    from: new Date(),
-    to: addDays(new Date(), 7), // Default to 1 week borrowing period
+    from: undefined,
+    to: undefined,
+  });
+  const [borrowerName, setBorrowerName] = React.useState(() => {
+    return localStorage.getItem("guestName") || "";
   });
 
   const handleBorrowSubmit = () => {
+    if (!borrowDates.from || !borrowDates.to || !borrowerName.trim()) {
+      return;
+    }
+    localStorage.setItem("guestName", borrowerName);
     setShowBorrowDialog(false);
     if (onCheckout) {
-      onCheckout();
+      onCheckout(borrowDates, borrowerName);
     }
   };
 
@@ -61,12 +70,22 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
           />
           {game.isCheckedOut && (
-            <Badge 
-              variant="secondary" 
-              className="absolute top-2 right-2 bg-red-500/90 text-white"
-            >
-              Checked Out
-            </Badge>
+            <>
+              <Badge 
+                variant="secondary" 
+                className="absolute top-2 right-2 bg-red-500/90 text-white"
+              >
+                Checked Out
+              </Badge>
+              {isAdmin && game.borrowerName && (
+                <Badge 
+                  variant="secondary" 
+                  className="absolute top-10 right-2 bg-blue-500/90 text-white"
+                >
+                  By: {game.borrowerName}
+                </Badge>
+              )}
+            </>
           )}
         </div>
         <CardHeader>
@@ -108,10 +127,19 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
           <DialogHeader>
             <DialogTitle>Borrow {game.title}</DialogTitle>
             <DialogDescription>
-              Select the dates you'd like to borrow this game.
+              Enter your name and select the dates you'd like to borrow this game.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="borrower-name">Your Name</Label>
+              <Input
+                id="borrower-name"
+                placeholder="Enter your name"
+                value={borrowerName}
+                onChange={(e) => setBorrowerName(e.target.value)}
+              />
+            </div>
             <Calendar
               mode="range"
               selected={{
@@ -119,19 +147,22 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
                 to: borrowDates.to,
               }}
               onSelect={(range) => {
-                if (range?.from && range?.to) {
-                  setBorrowDates({ from: range.from, to: range.to });
-                }
+                setBorrowDates({ 
+                  from: range?.from, 
+                  to: range?.to 
+                });
               }}
               className="rounded-md border"
-              disabled={(date) => date < new Date()}
             />
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setShowBorrowDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleBorrowSubmit}>
+            <Button 
+              onClick={handleBorrowSubmit}
+              disabled={!borrowDates.from || !borrowDates.to || !borrowerName.trim()}
+            >
               Confirm Borrowing
             </Button>
           </DialogFooter>
