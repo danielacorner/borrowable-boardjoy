@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import EditGame from "./pages/EditGame";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/games/:id/edit" element={<EditGame />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

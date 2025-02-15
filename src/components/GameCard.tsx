@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useNavigate } from "react-router-dom";
 
 interface Game {
   id: string;
@@ -40,6 +40,7 @@ interface GameCardProps {
 }
 
 const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps) => {
+  const navigate = useNavigate();
   const [showBorrowDialog, setShowBorrowDialog] = React.useState(false);
   const [borrowDates, setBorrowDates] = React.useState<{
     from: Date | undefined;
@@ -66,6 +67,10 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
     if (onCheckout) {
       onCheckout(borrowDates, borrowerName, borrowerEmail, message);
     }
+  };
+
+  const handleEditClick = () => {
+    navigate(`/games/${game.id}/edit`);
   };
 
   const getStatusBadgeColor = (status: Game['status']) => {
@@ -137,7 +142,7 @@ const GameCard = ({ game, isAdmin, onCheckout, onEdit, onDelete }: GameCardProps
         <CardFooter className="flex justify-between">
           {isAdmin ? (
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={onEdit}>
+              <Button size="sm" variant="outline" onClick={handleEditClick}>
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
               </Button>
