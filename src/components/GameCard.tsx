@@ -142,8 +142,8 @@ const GameCard = ({
   };
 
   const handleCloseBorrowDialog = useCallback(() => {
-    navigate(-1);
-  }, [navigate]);
+    // navigate(-1);
+  }, []);
 
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
