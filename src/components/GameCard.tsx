@@ -64,6 +64,9 @@ const GameCard = ({
   onEdit,
   onDelete,
 }: GameCardProps) => {
+  if (game.borrowerEmail) {
+    console.log(game);
+  }
   const navigate = useNavigate();
   const [showBorrowDialog, setShowBorrowDialog] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -78,7 +81,7 @@ const GameCard = ({
     return localStorage.getItem("guestName") || "";
   });
   const [borrowerEmail, setBorrowerEmail] = useState(() => {
-    return localStorage.getItem("guestEmail") || "";
+    return game.borrowerEmail ?? (localStorage.getItem("guestEmail") || "");
   });
   const [message, setMessage] = useState("");
 
@@ -126,7 +129,10 @@ const GameCard = ({
 
   const getBorrowedUntilText = () => {
     if (game.borrowedUntil) {
-      return `Unavailable until ${format(new Date(game.borrowedUntil), 'MMM d, yyyy')}`;
+      return `Unavailable until ${format(
+        new Date(game.borrowedUntil),
+        "MMM d, yyyy"
+      )}`;
     }
     return "Unavailable";
   };
@@ -136,7 +142,11 @@ const GameCard = ({
       <Card className="glass-card hover-scale overflow-hidden">
         <div className="relative h-48 overflow-hidden">
           <img
-            src={!imageError ? game.imageUrl || "/placeholder.svg" : "/placeholder.svg"}
+            src={
+              !imageError
+                ? game.imageUrl || "/placeholder.svg"
+                : "/placeholder.svg"
+            }
             alt={game.title}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
             onError={handleImageError}
@@ -185,7 +195,7 @@ const GameCard = ({
               Condition: {game.conditionNotes}
             </p>
           )}
-          {isAdmin && game.borrowerEmail && game.status === 'borrowed' && (
+          {isAdmin && game.borrowerEmail && game.status === "borrowed" && (
             <p className="text-sm text-muted-foreground mt-2">
               Borrowed by: {game.borrowerEmail}
             </p>
@@ -202,7 +212,7 @@ const GameCard = ({
                 <Trash className="h-4 w-4 mr-1" />
                 Delete
               </Button>
-              {game.status === 'borrowed' && (
+              {game.status === "borrowed" && (
                 <Button size="sm" variant="secondary" onClick={onReturn}>
                   <Undo className="h-4 w-4 mr-1" />
                   Returned
@@ -216,7 +226,9 @@ const GameCard = ({
               onClick={() => setShowBorrowDialog(true)}
             >
               <Calendar className="h-4 w-4 mr-1" />
-              {game.status === "available" ? "Borrow Game" : getBorrowedUntilText()}
+              {game.status === "available"
+                ? "Borrow Game"
+                : getBorrowedUntilText()}
             </Button>
           )}
         </CardFooter>

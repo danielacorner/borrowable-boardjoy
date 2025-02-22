@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GameStatus } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
+import { useNavigate } from "react-router-dom";
 
 const gameImageMap: { [key: string]: string } = {
   Wingspan: "wingspan.jpeg",
@@ -28,8 +29,9 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -239,33 +241,58 @@ const Index = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 page-transition">
-      {isAdmin && (
-        <div className="fixed top-4 left-4 z-50">
-          <span className="bg-primary text-primary-foreground px-3 py-1 rounded-md text-sm font-medium">
-            Admin
-          </span>
+    <div className="container mx-auto py-8">
+      <div className="flex justify-between items-center mb-8">
+        <div className="flex gap-4 items-center flex-1">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search games..."
+              className="pl-8"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          {isAdmin && (
+            <Button
+              variant="default"
+              onClick={() => navigate("/games/new")}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Game
+            </Button>
+          )}
         </div>
-      )}
-
+        {isAdmin && (
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                await logout();
+                toast({
+                  title: "Success",
+                  description: "Logged out successfully",
+                });
+              } catch (error: any) {
+                toast({
+                  title: "Error",
+                  description: error.message,
+                  variant: "destructive",
+                });
+              }
+            }}
+          >
+            Logout
+          </Button>
+        )}
+      </div>
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-4xl font-bold mb-2">Board Game Library</h1>
           <p className="text-muted-foreground">
             Browse and borrow from our collection of board games
           </p>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search games..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
         </div>
 
         {isLoading ? (
