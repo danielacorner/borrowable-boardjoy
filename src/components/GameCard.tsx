@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -23,13 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
-
-export type Status =
-  | "available"
-  | "reserved"
-  | "borrowed"
-  | "maintenance"
-  | "retired";
+import { GameStatus } from "@/types";
 
 interface Game {
   id: string;
@@ -41,7 +36,7 @@ interface Game {
   playTime: string | null;
   recommendedAge: string | null;
   complexityRating: number | null;
-  status: Status;
+  status: GameStatus;
   conditionNotes: string | null;
 }
 
@@ -66,21 +61,22 @@ const GameCard = ({
   onDelete,
 }: GameCardProps) => {
   const navigate = useNavigate();
-  const [showBorrowDialog, setShowBorrowDialog] = React.useState(false);
-  const [borrowDates, setBorrowDates] = React.useState<{
+  const [showBorrowDialog, setShowBorrowDialog] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [borrowDates, setBorrowDates] = useState<{
     from: Date | undefined;
     to: Date | undefined;
   }>({
     from: undefined,
     to: undefined,
   });
-  const [borrowerName, setBorrowerName] = React.useState(() => {
+  const [borrowerName, setBorrowerName] = useState(() => {
     return localStorage.getItem("guestName") || "";
   });
-  const [borrowerEmail, setBorrowerEmail] = React.useState(() => {
+  const [borrowerEmail, setBorrowerEmail] = useState(() => {
     return localStorage.getItem("guestEmail") || "";
   });
-  const [message, setMessage] = React.useState("");
+  const [message, setMessage] = useState("");
 
   const handleBorrowSubmit = () => {
     if (
@@ -119,14 +115,20 @@ const GameCard = ({
     }
   };
 
+  const handleImageError = () => {
+    setImageError(true);
+    console.error(`Failed to load image for game: ${game.title}`);
+  };
+
   return (
     <>
       <Card className="glass-card hover-scale overflow-hidden">
         <div className="relative h-48 overflow-hidden">
           <img
-            src={game.imageUrl || "/placeholder.svg"}
+            src={!imageError ? game.imageUrl || "/placeholder.svg" : "/placeholder.svg"}
             alt={game.title}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+            onError={handleImageError}
           />
           <Badge
             variant="secondary"
@@ -281,3 +283,4 @@ const GameCard = ({
 };
 
 export default GameCard;
+

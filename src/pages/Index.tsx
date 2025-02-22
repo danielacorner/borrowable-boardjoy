@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { GameStatus } from "@/types";
 
 const Index = () => {
   const [search, setSearch] = useState("");
@@ -139,7 +140,7 @@ const Index = () => {
                   playTime: game.play_time,
                   recommendedAge: game.recommended_age,
                   complexityRating: game.complexity_rating,
-                  status: game.status,
+                  status: game.status as GameStatus || "available",
                   conditionNotes: game.condition_notes,
                 }}
                 isAdmin={false}
@@ -156,3 +157,4 @@ const Index = () => {
 };
 
 export default Index;
+
