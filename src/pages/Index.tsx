@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import GameCard from "@/components/GameCard";
@@ -8,6 +7,21 @@ import { Plus, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GameStatus } from "@/types";
+
+const gameImageMap: { [key: string]: string } = {
+  "Wingspan": "wingspan.jpeg",
+  "Pandemic": "pandemic game.webp",
+  "Mysterium": "mysterium.png",
+  "Mage Wars": "magewars.jpg",
+  "Jenga": "jenga.jpg",
+  "Guess Who?": "guesswho.jpg",
+  "Go-Stop": "gostop.webp",
+  "Cytosis": "cytosis.png",
+  "Unearth": "Unearth-Board-Game-Feature.webp",
+  "Cribbage": "H2P_cribbage.jpg",
+  "Bananagrams": "Bananagrams-French-891-FBN001.webp",
+  "Playing Cards": "playingcards.jpg"
+};
 
 const Index = () => {
   const [search, setSearch] = useState("");
@@ -23,7 +37,11 @@ const Index = () => {
         .order('title');
       
       if (error) throw error;
-      return data;
+      
+      return data.map(game => ({
+        ...game,
+        image_url: gameImageMap[game.title] ? `/images/${gameImageMap[game.title]}` : '/placeholder.svg'
+      }));
     },
   });
 
@@ -157,4 +175,3 @@ const Index = () => {
 };
 
 export default Index;
-
