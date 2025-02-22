@@ -249,7 +249,7 @@ const GameCard = ({
       </Card>
 
       <Dialog open={showBorrowDialog} onOpenChange={setShowBorrowDialog}>
-        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[425px] max-h-[100vh] pb-36 overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Borrow {game.title}</DialogTitle>
             <DialogDescription>
