@@ -17,12 +17,14 @@ const gameImageMap: { [key: string]: string } = {
   "Mage Wars": "magewars.jpg",
   Jenga: "jenga.jpg",
   "Guess Who?": "guesswho.jpg",
-  "Go-Stop": "gostop.webp",
+  "Go-Stop": "gostop.jpg",
   Cytosis: "cytosis.png",
   Unearth: "Unearth-Board-Game-Feature.webp",
   Cribbage: "H2P_cribbage.jpg",
-  Bananagrams: "Bananagrams-French-891-FBN001.webp",
+  "Bananagrams (Édition Française)": "bananafr.jpg",
   "Playing Cards": "playingcards.jpg",
+  Balderdash: "balderdash_1_800x600.jpg",
+  Carcassonne: "carcassonne.jpg",
 };
 
 const Index = () => {
@@ -255,10 +257,7 @@ const Index = () => {
             />
           </div>
           {isAdmin && (
-            <Button
-              variant="default"
-              onClick={() => navigate("/games/new")}
-            >
+            <Button variant="default" onClick={() => navigate("/games/new")}>
               <Plus className="h-4 w-4 mr-2" />
               Add Game
             </Button>
