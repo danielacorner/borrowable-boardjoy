@@ -22,7 +22,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { GameStatus } from "@/types";
 import { format } from "date-fns";
 
@@ -68,7 +68,8 @@ const GameCard = ({
     console.log(game);
   }
   const navigate = useNavigate();
-  const [showBorrowDialog, setShowBorrowDialog] = useState(false);
+  const [searchParams] = useSearchParams();
+  const showBorrowDialog = searchParams.get("borrowing") === game.id;
   const [imageError, setImageError] = useState(false);
   const [borrowDates, setBorrowDates] = useState<{
     from: Date | undefined;
@@ -96,7 +97,6 @@ const GameCard = ({
     }
     localStorage.setItem("guestName", borrowerName);
     localStorage.setItem("guestEmail", borrowerEmail);
-    setShowBorrowDialog(false);
     if (onCheckout) {
       onCheckout(borrowDates, borrowerName, borrowerEmail, message);
     }
@@ -138,13 +138,16 @@ const GameCard = ({
   };
 
   const handleOpenBorrowDialog = () => {
-    window.history.pushState({ borrowDialog: true }, "");
-    setShowBorrowDialog(true);
+    navigate(`?borrowing=${game.id}`);
+  };
+
+  const handleCloseBorrowDialog = () => {
+    navigate(-1);
   };
 
   useEffect(() => {
     const handlePopState = () => {
-      setShowBorrowDialog(false);
+      handleCloseBorrowDialog();
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -248,7 +251,12 @@ const GameCard = ({
         </CardFooter>
       </Card>
 
-      <Dialog open={showBorrowDialog} onOpenChange={setShowBorrowDialog}>
+      <Dialog
+        open={showBorrowDialog}
+        onOpenChange={(open) => {
+          if (!open) handleCloseBorrowDialog();
+        }}
+      >
         <DialogContent className="sm:max-w-[425px] max-h-[100vh] pb-36 overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Borrow {game.title}</DialogTitle>
@@ -306,10 +314,7 @@ const GameCard = ({
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setShowBorrowDialog(false)}
-            >
+            <Button variant="secondary" onClick={handleCloseBorrowDialog}>
               Cancel
             </Button>
             <Button
