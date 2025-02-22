@@ -257,8 +257,8 @@ const GameCard = ({
           if (!open) handleCloseBorrowDialog();
         }}
       >
-        <DialogContent className="mt-24 sm:max-w-[425px] max-h-[100vh] overflow-y-auto py-8">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[425px] max-h-[100vh] overflow-y-auto py-8">
+          <DialogHeader className="mt-16">
             <DialogTitle>Borrow {game.title}</DialogTitle>
             <DialogDescription>
               Enter your details and select the dates you'd like to borrow this
