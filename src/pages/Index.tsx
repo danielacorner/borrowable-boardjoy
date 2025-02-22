@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import GameCard from "@/components/GameCard";
@@ -32,14 +33,31 @@ const Index = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      supabase.rpc('has_role', { 
-        user_id: user.id, 
-        role: 'admin' 
-      }).then(({ data: isAdmin }) => {
-        setIsAdmin(isAdmin);
-      });
-    }
+    const checkAdminRole = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      
+      try {
+        const { data: hasAdminRole, error } = await supabase.rpc('has_role', { 
+          user_id: user.id, 
+          role: 'admin' 
+        });
+
+        if (error) {
+          console.error('Error checking admin role:', error);
+          return;
+        }
+
+        console.log('Admin role check result:', hasAdminRole); // Debug log
+        setIsAdmin(hasAdminRole || false);
+      } catch (err) {
+        console.error('Error in checkAdminRole:', err);
+      }
+    };
+
+    checkAdminRole();
   }, [user]);
 
   const { data: games, isLoading } = useQuery({
@@ -282,3 +300,4 @@ const Index = () => {
 };
 
 export default Index;
+
