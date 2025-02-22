@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Card,
@@ -10,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash, Calendar, User, Clock, Brain } from "lucide-react";
+import { Edit, Trash, Calendar, User, Clock, Brain, Undo } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { GameStatus } from "@/types";
+import { format } from "date-fns";
 
 interface Game {
   id: string;
@@ -38,6 +38,8 @@ interface Game {
   complexityRating: number | null;
   status: GameStatus;
   conditionNotes: string | null;
+  borrowedUntil?: string | null;
+  borrowerEmail?: string | null;
 }
 
 interface GameCardProps {
@@ -49,6 +51,7 @@ interface GameCardProps {
     borrowerEmail: string,
     message: string
   ) => void;
+  onReturn?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -57,6 +60,7 @@ const GameCard = ({
   game,
   isAdmin,
   onCheckout,
+  onReturn,
   onEdit,
   onDelete,
 }: GameCardProps) => {
@@ -120,6 +124,13 @@ const GameCard = ({
     console.error(`Failed to load image for game: ${game.title}`);
   };
 
+  const getBorrowedUntilText = () => {
+    if (game.borrowedUntil) {
+      return `Unavailable until ${format(new Date(game.borrowedUntil), 'MMM d, yyyy')}`;
+    }
+    return "Unavailable";
+  };
+
   return (
     <>
       <Card className="glass-card hover-scale overflow-hidden">
@@ -174,6 +185,11 @@ const GameCard = ({
               Condition: {game.conditionNotes}
             </p>
           )}
+          {isAdmin && game.borrowerEmail && game.status === 'borrowed' && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Borrowed by: {game.borrowerEmail}
+            </p>
+          )}
         </CardContent>
         <CardFooter className="flex justify-between">
           {isAdmin ? (
@@ -186,6 +202,12 @@ const GameCard = ({
                 <Trash className="h-4 w-4 mr-1" />
                 Delete
               </Button>
+              {game.status === 'borrowed' && (
+                <Button size="sm" variant="secondary" onClick={onReturn}>
+                  <Undo className="h-4 w-4 mr-1" />
+                  Returned
+                </Button>
+              )}
             </div>
           ) : (
             <Button
@@ -194,7 +216,7 @@ const GameCard = ({
               onClick={() => setShowBorrowDialog(true)}
             >
               <Calendar className="h-4 w-4 mr-1" />
-              {game.status === "available" ? "Borrow Game" : "Unavailable"}
+              {game.status === "available" ? "Borrow Game" : getBorrowedUntilText()}
             </Button>
           )}
         </CardFooter>
@@ -283,4 +305,3 @@ const GameCard = ({
 };
 
 export default GameCard;
-

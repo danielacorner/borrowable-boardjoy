@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import GameCard from "@/components/GameCard";
@@ -8,6 +7,7 @@ import { Plus, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GameStatus } from "@/types";
+import { useAuth } from "@/hooks/use-auth";
 
 const gameImageMap: { [key: string]: string } = {
   "Wingspan": "wingspan.jpeg",
@@ -28,21 +28,48 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      supabase.rpc('has_role', { 
+        user_id: user.id, 
+        role: 'admin' 
+      }).then(({ data: isAdmin }) => {
+        setIsAdmin(isAdmin);
+      });
+    }
+  }, [user]);
 
   const { data: games, isLoading } = useQuery({
     queryKey: ['games'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: gamesData, error: gamesError } = await supabase
         .from('games')
         .select('*')
         .order('title');
       
-      if (error) throw error;
+      if (gamesError) throw gamesError;
       
-      return data.map(game => ({
+      const { data: reservationsData, error: reservationsError } = await supabase
+        .from('reservations')
+        .select('*')
+        .in('game_id', gamesData.map(g => g.id))
+        .eq('status', 'active');
+
+      if (reservationsError) throw reservationsError;
+
+      const reservationsMap = reservationsData.reduce((acc, reservation) => {
+        acc[reservation.game_id] = reservation;
+        return acc;
+      }, {});
+      
+      return gamesData.map(game => ({
         ...game,
         image_url: gameImageMap[game.title] ? `/images/${gameImageMap[game.title]}` : '/placeholder.svg',
-        status: determineGameStatus(game)
+        status: determineGameStatus(game),
+        reservation: reservationsMap[game.id]
       }));
     },
   });
@@ -76,7 +103,6 @@ const Index = () => {
       borrowerEmail: string;
       message: string;
     }) => {
-      // First, create the reservation
       const { data: reservation, error: reservationError } = await supabase
         .from('reservations')
         .insert([
@@ -94,7 +120,6 @@ const Index = () => {
 
       if (reservationError) throw reservationError;
 
-      // Then, update the game's borrowed_until date
       const { error: gameError } = await supabase
         .from('games')
         .update({ 
@@ -124,6 +149,43 @@ const Index = () => {
     },
   });
 
+  const markGameAsReturnedMutation = useMutation({
+    mutationFn: async (gameId: string) => {
+      const { error: gameError } = await supabase
+        .from('games')
+        .update({ 
+          borrowed_until: null,
+          status: 'available'
+        })
+        .eq('id', gameId);
+
+      if (gameError) throw gameError;
+
+      const { error: reservationError } = await supabase
+        .from('reservations')
+        .update({ status: 'completed' })
+        .eq('game_id', gameId)
+        .eq('status', 'active');
+
+      if (reservationError) throw reservationError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['games'] });
+      toast({
+        title: "Success",
+        description: "Game has been marked as returned",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to mark game as returned",
+        variant: "destructive",
+      });
+      console.error('Return error:', error);
+    },
+  });
+
   const handleCheckout = async (
     gameId: string,
     dates: { from: Date; to: Date },
@@ -140,6 +202,10 @@ const Index = () => {
     });
   };
 
+  const handleReturn = (gameId: string) => {
+    markGameAsReturnedMutation.mutate(gameId);
+  };
+
   const filteredGames = games?.filter(game =>
     game.title.toLowerCase().includes(search.toLowerCase()) ||
     game.description?.toLowerCase().includes(search.toLowerCase())
@@ -147,6 +213,14 @@ const Index = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 page-transition">
+      {isAdmin && (
+        <div className="fixed top-4 left-4 z-50">
+          <span className="bg-primary text-primary-foreground px-3 py-1 rounded-md text-sm font-medium">
+            Admin
+          </span>
+        </div>
+      )}
+      
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-4xl font-bold mb-2">Board Game Library</h1>
@@ -190,11 +264,14 @@ const Index = () => {
                   complexityRating: game.complexity_rating,
                   status: game.status as GameStatus,
                   conditionNotes: game.condition_notes,
+                  borrowedUntil: game.borrowed_until,
+                  borrowerEmail: game.reservation?.borrower_email
                 }}
-                isAdmin={false}
+                isAdmin={isAdmin}
                 onCheckout={(dates, borrowerName, borrowerEmail, message) => 
                   handleCheckout(game.id, dates, borrowerName, borrowerEmail, message)
                 }
+                onReturn={() => handleReturn(game.id)}
               />
             ))}
           </div>
