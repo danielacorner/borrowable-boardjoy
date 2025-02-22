@@ -142,7 +142,7 @@ const GameCard = ({
   };
 
   const handleCloseBorrowDialog = () => {
-    navigate(-1);
+    // navigate(-1);
   };
 
   useEffect(() => {
