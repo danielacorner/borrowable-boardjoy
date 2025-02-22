@@ -7,6 +7,24 @@ import GameForm from "@/components/GameForm";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 
+type GameStatus = "available" | "reserved" | "borrowed" | "maintenance" | "retired";
+
+interface Game {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  min_players: number | null;
+  max_players: number | null;
+  play_time: string | null;
+  recommended_age: string | null;
+  complexity_rating: number | null;
+  status: GameStatus;
+  condition_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const EditGame = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -31,12 +49,12 @@ const EditGame = () => {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Game;
     },
   });
 
   const updateGame = useMutation({
-    mutationFn: async (gameData: any) => {
+    mutationFn: async (gameData: Partial<Game>) => {
       const { error } = await supabase
         .from("games")
         .update(gameData)
