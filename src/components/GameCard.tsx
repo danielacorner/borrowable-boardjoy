@@ -257,7 +257,7 @@ const GameCard = ({
           if (!open) handleCloseBorrowDialog();
         }}
       >
-        <DialogContent className="sm:max-w-[425px] max-h-[100vh] pb-36 overflow-y-auto">
+        <DialogContent className="sm:max-w-[425px] max-h-[100vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Borrow {game.title}</DialogTitle>
             <DialogDescription>
@@ -313,7 +313,7 @@ const GameCard = ({
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="pb-36 flex gap-2">
             <Button variant="secondary" onClick={handleCloseBorrowDialog}>
               Cancel
             </Button>
