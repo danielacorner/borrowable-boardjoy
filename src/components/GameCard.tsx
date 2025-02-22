@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -138,21 +138,22 @@ const GameCard = ({
   };
 
   const handleOpenBorrowDialog = () => {
-    navigate(`?borrowing=${game.id}`);
+    navigate(`?borrowing=${game.id}`, { replace: false });
   };
 
-  const handleCloseBorrowDialog = () => {
-    // navigate(-1);
-  };
+  const handleCloseBorrowDialog = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
 
   useEffect(() => {
-    const handlePopState = () => {
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
       handleCloseBorrowDialog();
     };
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  }, [handleCloseBorrowDialog]);
 
   return (
     <>
