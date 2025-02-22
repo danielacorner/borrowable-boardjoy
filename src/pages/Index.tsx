@@ -17,7 +17,7 @@ const gameImageMap: { [key: string]: string } = {
   "Mage Wars": "magewars.jpg",
   Jenga: "jenga.jpg",
   "Guess Who?": "guesswho.jpg",
-  "Go-Stop": "gostop.jpg",
+  "Go Stop": "gostop.jpg",
   Cytosis: "cytosis.png",
   Unearth: "Unearth-Board-Game-Feature.webp",
   Cribbage: "H2P_cribbage.jpg",
