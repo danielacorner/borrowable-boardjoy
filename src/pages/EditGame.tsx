@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,8 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import GameForm from "@/components/GameForm";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-
-type GameStatus = "available" | "reserved" | "borrowed" | "maintenance" | "retired";
+import { GameStatus } from "@/types";
 
 interface Game {
   id: string;
@@ -47,7 +45,7 @@ const EditGame = () => {
         .select("*")
         .eq("id", id)
         .single();
-      
+
       if (error) throw error;
       return data as Game;
     },
@@ -59,7 +57,7 @@ const EditGame = () => {
         .from("games")
         .update(gameData)
         .eq("id", id);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
