@@ -257,7 +257,7 @@ const GameCard = ({
           if (!open) handleCloseBorrowDialog();
         }}
       >
-        <DialogContent className="sm:max-w-[425px] max-h-[100vh] overflow-y-auto">
+        <DialogContent className="mt-12 sm:max-w-[425px] max-h-[100vh] overflow-y-auto py-8">
           <DialogHeader>
             <DialogTitle>Borrow {game.title}</DialogTitle>
             <DialogDescription>
