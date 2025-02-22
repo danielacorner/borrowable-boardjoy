@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -137,6 +137,20 @@ const GameCard = ({
     return "Unavailable";
   };
 
+  const handleOpenBorrowDialog = () => {
+    window.history.pushState({ borrowDialog: true }, "");
+    setShowBorrowDialog(true);
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setShowBorrowDialog(false);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   return (
     <>
       <Card className="glass-card hover-scale overflow-hidden">
@@ -223,7 +237,7 @@ const GameCard = ({
             <Button
               size="sm"
               disabled={game.status !== "available"}
-              onClick={() => setShowBorrowDialog(true)}
+              onClick={handleOpenBorrowDialog}
             >
               <Calendar className="h-4 w-4 mr-1" />
               {game.status === "available"
@@ -235,7 +249,7 @@ const GameCard = ({
       </Card>
 
       <Dialog open={showBorrowDialog} onOpenChange={setShowBorrowDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Borrow {game.title}</DialogTitle>
             <DialogDescription>
