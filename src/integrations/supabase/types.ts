@@ -67,6 +67,7 @@ export type Database = {
       }
       games: {
         Row: {
+          borrowed_until: string | null
           complexity_rating: number | null
           condition_notes: string | null
           created_at: string
@@ -82,6 +83,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          borrowed_until?: string | null
           complexity_rating?: number | null
           condition_notes?: string | null
           created_at?: string
@@ -97,6 +99,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          borrowed_until?: string | null
           complexity_rating?: number | null
           condition_notes?: string | null
           created_at?: string

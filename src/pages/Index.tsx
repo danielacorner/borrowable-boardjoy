@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import GameCard from "@/components/GameCard";
@@ -40,10 +41,26 @@ const Index = () => {
       
       return data.map(game => ({
         ...game,
-        image_url: gameImageMap[game.title] ? `/images/${gameImageMap[game.title]}` : '/placeholder.svg'
+        image_url: gameImageMap[game.title] ? `/images/${gameImageMap[game.title]}` : '/placeholder.svg',
+        status: determineGameStatus(game)
       }));
     },
   });
+
+  const determineGameStatus = (game: any): GameStatus => {
+    if (game.status === 'maintenance' || game.status === 'retired') {
+      return game.status;
+    }
+    
+    if (game.borrowed_until) {
+      const borrowedUntil = new Date(game.borrowed_until);
+      if (borrowedUntil >= new Date()) {
+        return 'borrowed';
+      }
+    }
+    
+    return 'available';
+  };
 
   const createReservationMutation = useMutation({
     mutationFn: async ({
@@ -59,7 +76,8 @@ const Index = () => {
       borrowerEmail: string;
       message: string;
     }) => {
-      const { data, error } = await supabase
+      // First, create the reservation
+      const { data: reservation, error: reservationError } = await supabase
         .from('reservations')
         .insert([
           {
@@ -74,8 +92,20 @@ const Index = () => {
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (reservationError) throw reservationError;
+
+      // Then, update the game's borrowed_until date
+      const { error: gameError } = await supabase
+        .from('games')
+        .update({ 
+          borrowed_until: dates.to.toISOString(),
+          status: 'borrowed'
+        })
+        .eq('id', gameId);
+
+      if (gameError) throw gameError;
+
+      return reservation;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['games'] });
@@ -158,7 +188,7 @@ const Index = () => {
                   playTime: game.play_time,
                   recommendedAge: game.recommended_age,
                   complexityRating: game.complexity_rating,
-                  status: game.status as GameStatus || "available",
+                  status: game.status as GameStatus,
                   conditionNotes: game.condition_notes,
                 }}
                 isAdmin={false}
